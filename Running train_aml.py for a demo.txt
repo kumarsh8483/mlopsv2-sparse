@@ -1,0 +1,66 @@
+Running train_aml.py for a demo
+2 Argument [model_name]: mdl-neuro-psy-analg-nonenrollment.pkl
+Argument [step_output]: /mnt/azureml/cr/j/ce2937caaf79427cb05d0e4bac6c557d/cap/data-capability/wd/INPUT_pipeline_data_workspaceblobstore/azureml/a391f44c-d005-4cf6-a62f-45f5d54d3694/pipeline_data
+Argument [dataset_version]: latest
+Argument [data_file_path]: none
+Argument [caller_run_id]: none
+Argument [dataset_name]: neuro_psy_analg_nonenrollment_training_ds
+Getting training parameters
+NONENROLLMENT
+TrainingNeuPsyAnaNonEnrollmentModel
+<class 'neu_psy_ana.TrainingNeuPsyAnaNonEnrollmentModel'>
+/bin/bash: /azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/libtinfo.so.6: no version information available (required by /bin/bash)
+/bin/bash: /azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/libtinfo.so.6: no version information available (required by /bin/bash)
+/bin/bash: /azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/libtinfo.so.6: no version information available (required by /bin/bash)
+/bin/bash: /azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/libtinfo.so.6: no version information available (required by /bin/bash)
+/bin/bash: /azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/libtinfo.so.6: no version information available (required by /bin/bash)
+/bin/bash: /azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/libtinfo.so.6: no version information available (required by /bin/bash)
+/bin/bash: /azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/libtinfo.so.6: no version information available (required by /bin/bash)
+/bin/bash: /azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/libtinfo.so.6: no version information available (required by /bin/bash)
+/bin/bash: /azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/libtinfo.so.6: no version information available (required by /bin/bash)
+/bin/bash: /azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/libtinfo.so.6: no version information available (required by /bin/bash)
+/bin/bash: /azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/libtinfo.so.6: no version information available (required by /bin/bash)
+/bin/bash: /azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/libtinfo.so.6: no version information available (required by /bin/bash)
+/bin/bash: /azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/libtinfo.so.6: no version information available (required by /bin/bash)
+/bin/bash: /azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/libtinfo.so.6: no version information available (required by /bin/bash)
+/bin/bash: /azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/libtinfo.so.6: no version information available (required by /bin/bash)
+/bin/bash: /azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/libtinfo.so.6: no version information available (required by /bin/bash)
+Getting data access token with Assigned Identity (client_id=8555e750-349a-4973-98a5-838b7478e1c0).
+Transformed value - distribution: 
+True     12594
+False    10504
+Name: num_patient_enrolled_randomized, dtype: int64
+Train dataset shape: (18443, 13)
+Validation dataset shape: (1687, 13)
+Test dataset shape: (2968, 13)
+===> Unique labels in y_train:  [False  True]
+===> Unique labels in y_val:  [False  True]
+model fitting
+Cleaning up all outstanding Run operations, waiting 300.0 seconds
+2 items cleaning up...
+Cleanup took 0.15936779975891113 seconds
+Traceback (most recent call last):
+  File "training/train_aml.py", line 263, in <module>
+    main()
+  File "training/train_aml.py", line 220, in main
+    TrainingClass.preprocess(ft_site=ft_site,
+  File "/mnt/azureml/cr/j/ce2937caaf79427cb05d0e4bac6c557d/exe/wd/training/neu_psy_ana.py", line 275, in preprocess
+    self.xgb_model.train_model()
+  File "/mnt/azureml/cr/j/ce2937caaf79427cb05d0e4bac6c557d/exe/wd/training/npa_model.py", line 412, in train_model
+    self.model.fit(
+  File "/azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/python3.8/site-packages/xgboost/core.py", line 729, in inner_f
+    return func(**kwargs)
+  File "/azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/python3.8/site-packages/xgboost/sklearn.py", line 1515, in fit
+    self._Booster = train(
+  File "/azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/python3.8/site-packages/xgboost/core.py", line 729, in inner_f
+    return func(**kwargs)
+  File "/azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/python3.8/site-packages/xgboost/training.py", line 181, in train
+    bst.update(dtrain, i, obj)
+  File "/azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/python3.8/site-packages/xgboost/core.py", line 2046, in update
+    self._assign_dmatrix_features(dtrain)
+  File "/azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/python3.8/site-packages/xgboost/core.py", line 2933, in _assign_dmatrix_features
+    self._validate_features(fn)
+  File "/azureml-envs/azureml_8abca13acb0b8073a8bc0773b8725705/lib/python3.8/site-packages/xgboost/core.py", line 2940, in _validate_features
+    raise ValueError(
+ValueError: training data did not have the following fields: experience_site_synh_all, experience_site_synh_3y, experience_site_synh_1y, experience_site_synh_6m, therapeutic_area_Analgesia, therapeutic_area_Neurology, therapeutic_area_Psychiatry, indication_Acute-Pain, indication_Cerebrovascular-Disorders, indication_Chronic-Pain, indication_Degenerative-Disorders, indication_Developmental-Disorders-Neurological, indication_Developmental-Disorders-Psychiatric, indication_Mood-Disorders, indication_Movement-Disorders, indication_Neuromuscular-Disorders, indication_Psychotic-Disorders, indication_Seizure-Disorders, indication_Sleep-Disorders, indication_Substance-Abuse, region_ASPAC, region_EMEAF, region_LAMER, region_NAMER, region_None, country_ARG, country_AUS, country_AUT, country_BEL, country_BGR, country_BLR, country_BRA, country_CAN, country_CHE, country_CHL, country_CHN, country_COL, country_CRI, country_CZE, country_DEU, country_DNK, country_ESP, country_EST, country_FIN, country_FRA, country_GBR, country_GEO, country_GRC, country_HKG, country_HRV, country_HUN, country_IND, country_ISR, country_ITA, country_JPN, country_KOR, country_LBN, country_LTU, country_LVA, country_MDA, country_MEX, country_MYS, country_NLD, country_NOR, country_NZL, country_PER, country_PHL, country_POL, country_PRI, country_PRT, country_ROU, country_RUS, country_SAU, country_SGP, country_SRB, country_SVK, country_SVN, country_SWE, country_THA, country_TUN, country_TUR, country_TWN, country_UKR, country_USA, country_ZAF, country_other, selection_month_1-0, selection_month_10-0, selection_month_11-0, selection_month_12-0, selection_month_2-0, selection_month_3-0, selection_month_4-0, selection_month_5-0, selection_month_6-0, selection_month_7-0, selection_month_8-0, selection_month_9-0, selection_month_nan, study_phase_I, study_phase_I-II, study_phase_II, study_phase_III, study_phase_IV, study_phase_N-A, study_type_cleaned_double-blind, study_type_cleaned_interventional, study_type_cleaned_non-specified, study_type_cleaned_observational, study_type_cleaned_open-label, study_type_cleaned_randomized, study_type_cleaned_safety
+

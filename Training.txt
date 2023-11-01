@@ -1,0 +1,98 @@
+This page is dedicated to coverage of the MLOps training pipeline. Currently this involves reading in relevant data for the lung models, preprocessing the data for training, splitting the data into train and test sets, one-hot encoding the data, ensuring the columns are in the order the model expects, building the model, and finally registering the model if it passes specific criteria.
+
+ 
+
+Training
+Why is a training pipeline important?
+A training pipeline allows you to easily track which models are being pushed to deployment and production, what metrics are associated with the models (how does it perform compared to other models), what dataset was used to train the current model, and it allows you to set up guardrails for model registration. It provides a concrete (yet flexible) methodology that all models for a given indication must adhere to. For example, if you are trying to register a new hematology activation model, the guardrails will tell you if the model you are trying to register is worse than the current production model for hematology activation.
+
+Understanding the code
+First you would want to clone the repository (E2E-dp)
+
+If developing the code locally, make sure your IDE is configured correctly. For reference, this code was developed with the $PYTHONPATH pointing to the root of the directory
+
+The structure of the relevant (for scoring) code is as follows:
+
+code/aml_machinelearning/modeling_configs 
+
+This directory will contain a config file for each indication. This config file is used in the training and scoring pipelines. It contains the modeling vars, some workspace information, and the output vars. Currently there is just a lung_config.yml file
+
+The “MODEL_RUN” variable should be filled out by the user. This ties into the “MODEL_RUN_DICT”. For every model type within an indication the key is the model name (ACTIVATION, NONENROLLMENT, or ENROLLMENT) and the value is the name of the training class in lung.py described below. Whatever training pipeline you want to build (the lung activation, nonenrollment, or enrollment) should be specified in this variable and make sure it is specified in the “MODEL_RUN_DICT”
+
+For every new indication models you build you will add a new config file. For example, if you were to create a new model for hematology you would place a hematology_config.yml file in this directory (using the lung_config.yml file as a rough template)
+
+code/aml_machinelearning/data_utils contains a config file. For each new model / indication you add to the codebase, be sure to append the information into this file. For example, if you were creating a hematology class of models create a ‘hematology’ block in the config using the ‘lung’ block as a guiding template. All of the other code in this directory is not relevant to training.
+
+code/aml_machinelearning/iep_ml_models/training is where most of the code for the training pipeline is contained. And there are a lot of files in this directory
+
+json_converter.py PLEASE READ CAREFULLY ABOUT WHAT THIS SCRIPT DOES AND WHY IT IS VERY IMPORTANT. This script takes the config files (mentioned above) and places them in the relevant locations to be used throughout the training process. Only edit the yaml files in the modeling_configs and data_utils directory (for both scoring and training). And then run this script to take the updated yaml files, convert them to json, and place them in the relevant directories needed for building the training pipeline. This should always be run before building the training pipeline
+
+lung.py contains a training class for every lung model type (activation, non-enrollment, and enrollment). Each class has a group of methods. This is described in the code, but the methods should be titled exactly the same across classes. This is because in the training script, the relevant training class is found through the yaml file. By having all of the same method names in every class (that all take the same arguments) you do not have to add code to the training class when running the pipeline. If a preprocess method in one class takes an additional dataframe as an argument, add that argument to the preprocess method in the other classes and just initiate it with self and leave it at that
+
+lung_testing.py is for testing the classes and methods in the lung.py script. This isn’t used by the pipeline at all, but it is a script that can be used to test things out however you want
+
+train_aml.py calls the relevant training class from lung.py based on whatever class was specified in the lung_config file. This script just calls all of the methods in the training class to preprocess the data, train the model, register the training dataset, and then get the relevant metric for the model. PLEASE NOTE that when running the pipeline on a model for the first time, you must make sure (outside of this script – in a testing script) the training dataset is registered. This is because the training pipeline is referencing the dataset that was registered on the prior run. This is kind of confusing but an example is as follows. If you have never run the training pipeline on the hematology activation model before then you would call all of the relevant classes and register the training dataset in a testing script (make sure the name you register it under matches the training dataset name specified in the config file). Now you can run the pipeline for the hematology activation model as many times as you would like and change the data. However, the model will always be referencing the dataset registered in the prior run. This is confusing and not the most optimal, but it prevents you from ever having to add code directly to the pipeline build script (like is done in scoring) and in this script. If you are ever confused about what dataset is being used on a registered model you can check the associated data on a registered model in Azure ML
+
+transformation.py is virtually the exact same transformation.py script that is in the data_utils directory and called in the scoring pipeline. It needs to exist on its own in this directory because it is called in train_aml which is an entry script and should not have any module imports into it. If you make edits to transformation.py in the data_utils directory, take care to copy the changes over into this directory. I know this is tedious, the entry script(s) should not be importing modules. Note the methods in this script are virtually exactly the same as in data_utils but the workspace is given as an input parameter and it is initiated by the run context when the pipeline is run and built
+
+Lastly are the config files that are placed here from the json_converter.py script
+
+code/aml_machinelearning/iep_ml_models/evaluate contains evaluate_model.py and the associated config files (that were placed here from the json_converter.py script). This script loads in the specified model (from .Env) and compares the metric (MAPE or AUC depending on the model) of the current model being trained in the pipeline to some specified model metric value in the config file. This can be some arbitrary placeholder value or the value of the last actual registered model for the given indication. This is a guardrail to prevent poor fitting models from being registered. However, it is a flexible guardrail
+
+code/aml_machinelearning/iep_ml_models/register contains register_model.py and the associated config files (that were placed here from the json_converter.py script). This script simply registers the model that has been built in the pipeline (assuming it passes the guardrail check) and tags the relevant metrics and dataset used to train the model. If the model doesn’t pass the guardrails then it is not registered and the pipeline concludes
+
+code/aml_machinelearning/ml_service/pipelines contains the build script for the training pipeline. It is called ml_build_train_pipeline.py. This is the build script that orchestrates the flow from training the model (train_aml.py), to evaluating the model (evaluate_model.py), and then finally registering the model if it passes the guardrail checks (register_model.py)
+
+code/aml_machinelearning/iep_ml_models contains parameters.json. The only thing that would ever need to be added to this is a metric name to the list (if you wanted to track more metrics). The name of these metrics need to be in the corresponding indication file, for example lung.py
+
+Running the code
+In order to create the pipeline you need to do the following:
+
+See the section code/aml_machinelearning/modeling_configs above to make sure the relevant variables are specified before the configs are written to new directories
+
+If running an already existing indication that has a specified file (e.g., lung.py) in iep_ml_models/training (this is usually the case) then skip to the next step. If adding a new indication then follow the instructions above in the Understanding the code. In the train_aml.py script you will need to make sure the correct indication file is being read in so the relevant training class can be found (search for ‘TODO’ in the train_aml.py script to see where the code should change)
+
+Change the .Env file (as described in the .Env section) to the relevant values for your given indication and model type
+
+Make sure the projects docker container is running (Docker Desktop must be running and you must be logged in)
+
+
+
+docker run -d -i -t -v ~PATH TO YOUR REPO~ --name mlops mcr.microsoft.com/mlops/python:latest /bin/bash
+you can also activate the relevant container by using the interactive docker client and running this container
+
+In the terminal navigate to code/aml_machinelearning and run the build script (also from the terminal)
+
+
+
+python -m ml_service.pipelines.ml_build_train_pipeline
+Head to Azure ML (make sure the correct directory, subscription, and workspace are specified). For testing purposes this should be:
+
+Current Directory = Syneos Health
+
+Current Subscription = SYNH-DEV-CR-IEP-DLZ
+
+Current Workspace = e2e-dev-machinelearning001
+
+Then go to Pipelines → Pipeline Endpoints and find the relevant endpoint. Then click on “Submit”. The “Existing experiment” does not matter. Just choose one
+
+Once the pipeline is done running you can then navigate to “Models” on the side panel. If your new model is registered you should see it here
+
+Supporting files
+In code/aml_machinelearning/iep_ml_models you will see four yaml files:
+
+ci_dependencies.yml which has the overall CI dependencies for the codebase
+
+conda_dependencies_scorecopy.yml has the dependencies for building the scorecopy step of the scoring pipeline
+
+conda_dependencies_scoring.yml has the dependencies for building the scoring pipeline
+
+conda_dependencies.yml has the dependencies for the training pipeline (this pipeline)
+
+At some point all of the package versions should be specified (index to a specific version on every dependency). It might be worth indexing the package versions to whatever the versions are in Azure. If a version isn’t specified then the newest available version of the package will be used. As packages change the pipeline might break. Towards the end of June 2023 scikit-learn and joblib were both updated. The updates to these packages changed the way machine learning models were pickled in scikit-learn and how they were read in in joblib. This broke the scoring pipeline because the models could not be read in. This is why you will see a specific version of joblib being imported in.
+
+ 
+
+ 
+
+ 
